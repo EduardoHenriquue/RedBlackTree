@@ -2,25 +2,28 @@
  * Created by eduardohenrique on 04/06/17.
  */
 public class RBTree {
-    public static Node NIL = new Node(null, null, null, -1, Color.BLACK);
 
-    private Node root;
+    public static String labelNil = "Nil";
+    private int ZERO = 0;
+    public static RBElement NIL = new RBElement(null, null, null, labelNil, Color.preto);
+
+    private RBElement root;
 
     public RBTree() {
         this.root = NIL;
     }
 
-    public RBTree(Node root) {
+    public RBTree(RBElement root) {
         this.root = root;
     }
 
-    public void insert(Integer value) {
-        Node temp = root;
-        Node pre = NIL;
-        Node node = new Node(value);
+    public void rbInsert(String key) {
+        RBElement temp = root;
+        RBElement pre = NIL;
+        RBElement node = new RBElement(key);
         while (temp != NIL) {
             pre = temp;
-            if (value < temp.getValue()) {
+            if (key.compareTo(temp.getKey()) < ZERO) {
                 temp = temp.getLeftChild();
             } else {
                 temp = temp.getRightChild();
@@ -29,70 +32,71 @@ public class RBTree {
         node.setParent(pre);
         if (pre == NIL) {
             root = node;
-        } else if (value < pre.getValue()) {
+        } else if (key.compareTo(pre.getKey()) < ZERO) {
             pre.setLeftChild(node);
         } else {
             pre.setRightChild(node);
         }
-        _insertFix(node);
+        rbInsertFixup(node);
     }
 
-    private void _insertFix(Node node) {
-        while (node.getParent().getColor() == Color.RED) {
+    private void rbInsertFixup(RBElement node) {
+        while (node.getParent().getColor() == Color.vermelho) {
             if (node.getParent() == node.getParent().getParent().getLeftChild()) {
-                // 父节点是祖父节点的左儿子
-                Node uncle = node.getParent().getParent().getRightChild();
-                if (uncle.getColor() == Color.RED) {  // CASE 1
-                    node.getParent().setColor(Color.BLACK);
-                    uncle.setColor(Color.BLACK);
-                    node.getParent().getParent().setColor(Color.RED);
+                // Parent is left child of the grandfather
+                RBElement uncle = node.getParent().getParent().getRightChild();
+                if (uncle.getColor() == Color.vermelho) {  // CASE 1
+                    node.getParent().setColor(Color.preto);
+                    uncle.setColor(Color.preto);
+                    node.getParent().getParent().setColor(Color.vermelho);
                     node = node.getParent().getParent();
                 } else {
                     if (node == node.getParent().getRightChild()) { // CASE 2
                         node = node.getParent();
-                        _leftRotate(node);
+                        leftRotate(node);
                     } else {  // CASE 3
-                        node.getParent().setColor(Color.BLACK);
-                        node.getParent().getParent().setColor(Color.RED);
-                        _rightRotate(node.getParent().getParent());
+                        node.getParent().setColor(Color.preto);
+                        node.getParent().getParent().setColor(Color.vermelho);
+                        rightRotate(node.getParent().getParent());
                     }
                 }
 
             } else {
-                // 父节点是祖父节点的右儿子
-                Node uncle = node.getParent().getParent().getLeftChild();
-                if (uncle.getColor() == Color.RED) {  // CASE 1
-                    node.getParent().setColor(Color.BLACK);
-                    uncle.setColor(Color.BLACK);
-                    node.getParent().getParent().setColor(Color.RED);
+                // Parent is right child of the grandfather
+                RBElement uncle = node.getParent().getParent().getLeftChild();
+                if (uncle.getColor() == Color.vermelho) {  // CASE 1
+                    node.getParent().setColor(Color.preto);
+                    uncle.setColor(Color.preto);
+                    node.getParent().getParent().setColor(Color.vermelho);
                     node = node.getParent().getParent();
                 } else {
                     if (node == node.getParent().getLeftChild()) { // CASE 2
                         node = node.getParent();
-                        _rightRotate(node);
+                        rightRotate(node);
                     } else {  // CASE 3
-                        node.getParent().setColor(Color.BLACK);
-                        node.getParent().getParent().setColor(Color.RED);
-                        _leftRotate(node.getParent().getParent());
+                        node.getParent().setColor(Color.preto);
+                        node.getParent().getParent().setColor(Color.vermelho);
+                        leftRotate(node.getParent().getParent());
                     }
                 }
 
             }
         }
-        root.setColor(Color.BLACK);
+        root.setColor(Color.preto);
     }
 
-    public Node delete(Integer value) {
-        Node node = _search(value);
+    public RBElement rbDelete(String key) {
+        RBElement node = rbSearch(key);
         if (node == null) {
             return null;
         }
-        Node temp = NIL;
-        Node child = NIL;
+        RBElement temp = NIL;
+        RBElement child = NIL;
         if (node.getLeftChild() == NIL || node.getRightChild() == NIL) {
             temp = node;
         } else {
-            temp = _successor(node);
+            temp = successor(node);
+//            temp = predecessor(node);
         }
         if (temp.getLeftChild() != NIL) {
             child = temp.getLeftChild();
@@ -108,83 +112,83 @@ public class RBTree {
             temp.getParent().setRightChild(child);
         }
         if (temp != node) {
-            node.setValue(temp.getValue());
+            node.setKey(temp.getKey());
         }
-        if (temp.getColor() == Color.BLACK) {
-            _deleteFix(child);
+        if (temp.getColor() == Color.preto) {
+            rbDeleteFixup(child);
         }
         return temp;
 
     }
 
-    private void _deleteFix(Node node) {
-        while (node.getParent() != NIL && node.getColor() == Color.BLACK) {
+    private void rbDeleteFixup(RBElement node) {
+        while (node.getParent() != NIL && node.getColor() == Color.preto) {
             if (node == node.getParent().getLeftChild()) {
-                Node brother = node.getParent().getRightChild();
-                if (brother.getColor() == Color.RED) {
+                RBElement brother = node.getParent().getRightChild();
+                if (brother.getColor() == Color.vermelho) {
                     // CASE 1
-                    node.getParent().setColor(Color.RED);
-                    brother.setColor(Color.BLACK);
-                    _leftRotate(node.getParent());
+                    node.getParent().setColor(Color.vermelho);
+                    brother.setColor(Color.preto);
+                    leftRotate(node.getParent());
                     brother = node.getParent().getRightChild();
                 }
-                if (brother.getLeftChild().getColor() == Color.BLACK && brother.getRightChild().getColor() == Color.BLACK) {
+                if (brother.getLeftChild().getColor() == Color.preto && brother.getRightChild().getColor() == Color.preto) {
                     // CASE 2
-                    brother.setColor(Color.RED);
+                    brother.setColor(Color.vermelho);
                     node = node.getParent();
-                } else if (brother.getRightChild().getColor() == Color.BLACK) {
+                } else if (brother.getRightChild().getColor() == Color.preto) {
                     // CASE 3
-                    brother.setColor(Color.RED);
-                    brother.getLeftChild().setColor(Color.BLACK);
-                    _rightRotate(brother);
+                    brother.setColor(Color.vermelho);
+                    brother.getLeftChild().setColor(Color.preto);
+                    rightRotate(brother);
                 } else {
                     // CASE 4
                     brother.setColor(node.getParent().getColor());
-                    node.getParent().setColor(Color.BLACK);
-                    brother.getRightChild().setColor(Color.BLACK);
-                    _leftRotate(node.getParent());
+                    node.getParent().setColor(Color.preto);
+                    brother.getRightChild().setColor(Color.preto);
+                    leftRotate(node.getParent());
                     node = root;
                 }
             } else {
-                Node brother = node.getParent().getLeftChild();
-                if (brother.getColor() == Color.RED) {
+                RBElement brother = node.getParent().getLeftChild();
+                if (brother.getColor() == Color.vermelho) {
                     // CASE 1
-                    node.getParent().setColor(Color.RED);
-                    brother.setColor(Color.BLACK);
-                    _rightRotate(node.getParent());
+                    node.getParent().setColor(Color.vermelho);
+                    brother.setColor(Color.preto);
+                    rightRotate(node.getParent());
                     brother = node.getParent().getLeftChild();
                 }
-                if (brother.getLeftChild().getColor() == Color.BLACK && brother.getRightChild().getColor() == Color.BLACK) {
+                if (brother.getLeftChild().getColor() == Color.preto && brother.getRightChild().getColor() == Color.preto) {
                     // CASE 2
-                    brother.setColor(Color.RED);
+                    brother.setColor(Color.vermelho);
                     node = node.getParent();
-                } else if (brother.getLeftChild().getColor() == Color.BLACK) {
+                } else if (brother.getLeftChild().getColor() == Color.preto) {
                     // CASE 3
-                    brother.setColor(Color.RED);
-                    brother.getRightChild().setColor(Color.BLACK);
-                    _leftRotate(brother);
+                    brother.setColor(Color.vermelho);
+                    brother.getRightChild().setColor(Color.preto);
+                    leftRotate(brother);
                 } else {
                     // CASE 4
                     brother.setColor(node.getParent().getColor());
-                    node.getParent().setColor(Color.BLACK);
-                    brother.getLeftChild().setColor(Color.BLACK);
-                    _rightRotate(node.getParent());
+                    node.getParent().setColor(Color.preto);
+                    brother.getLeftChild().setColor(Color.preto);
+                    rightRotate(node.getParent());
                     node = root;
                 }
             }
         }
-        node.setColor(Color.BLACK);
+        node.setColor(Color.preto);
     }
 
-    private Node _successor(Node node) {
+    private RBElement successor(RBElement node) {
         if (node.getRightChild() != NIL) {
-            Node temp = node.getRightChild();
+            RBElement temp = node.getRightChild();
             while (temp.getLeftChild() != NIL) {
                 temp = temp.getLeftChild();
             }
             return temp;
         } else if (node.getParent() != NIL) {
-            Node temp = node.getParent();
+            RBElement temp = node.getParent();
             while (temp != NIL && node != temp.getLeftChild()) {
                 node = temp;
                 temp = temp.getParent();
@@ -194,12 +198,31 @@ public class RBTree {
         return NIL;
     }
 
-    private Node _search(Integer value) {
-        Node temp = root;
+    private RBElement predecessor(RBElement node) {
+        if (node.getLeftChild() != NIL) {
+            RBElement temp = node.getLeftChild();
+            while (temp.getRightChild() != NIL) {
+                temp = temp.getRightChild();
+            }
+            return temp;
+        } else if (node.getParent() != NIL) {
+            RBElement temp = node.getParent();
+            while (temp != NIL && node == temp.getLeftChild()) {
+                node = temp;
+                temp = temp.getParent();
+            }
+            return temp;
+        }
+        return NIL;
+    }
+
+
+    private RBElement rbSearch(String key) {
+        RBElement temp = root;
         while (temp != NIL) {
-            if (value == temp.getValue()) {
+            if (key.compareTo(temp.getKey()) == ZERO) {
                 return temp;
-            } else if (value < temp.getValue()) {
+            } else if (key.compareTo(temp.getKey()) < ZERO) {
                 temp = temp.getLeftChild();
             } else {
                 temp = temp.getRightChild();
@@ -208,8 +231,8 @@ public class RBTree {
         return null;
     }
 
-    private void _leftRotate(Node node) {
-        Node rightChild = node.getRightChild();
+    private void leftRotate(RBElement node) {
+        RBElement rightChild = node.getRightChild();
         node.setRightChild(rightChild.getLeftChild());
         if (rightChild.getLeftChild() != NIL) {
             rightChild.getLeftChild().setParent(node);
@@ -227,8 +250,8 @@ public class RBTree {
 
     }
 
-    private void _rightRotate(Node node) {
-        Node leftChild = node.getLeftChild();
+    private void rightRotate(RBElement node) {
+        RBElement leftChild = node.getLeftChild();
         node.setLeftChild(leftChild.getRightChild());
         if (leftChild.getRightChild() != NIL) {
             leftChild.getRightChild().setParent(node);
@@ -246,23 +269,32 @@ public class RBTree {
 
     }
 
-    public void print() {
-        _reshow(root);
-    }
-
-    private void _reshow(Node node) {
-        if (node != NIL) {
-//            _reshow(node.getLeftChild());
-//            System.out.println("Node[" + node.getValue() + "]color is:" + node.getColor());
-            System.out.println(
-                    "(Parent: " + (node.getParent().getValue() != -1 ? node.getParent().getValue() : "NIL")
-                    + ", Node: "+node.getValue()
-                    + ", Left Child: " + (node.getLeftChild().getValue() != -1 ? node.getLeftChild().getValue() : "NIL")
-                    + ", Right Child: " + (node.getRightChild().getValue() != -1 ? node.getRightChild().getValue() : "NIL")
-                    + ", Color: " + node.getColor() + ")");
-            _reshow(node.getLeftChild());
-            _reshow(node.getRightChild());
+    public void rbPrint(RBElement node) {
+        if(node != NIL){
+            rbPrint(node.getLeftChild());
+            System.out.println(node.getKey());
+            rbPrint(node.getRightChild());
         }
     }
 
+    public void rbCheck(RBElement node) {
+        if (node != NIL) {
+//            rbCheck(node.getLeftChild());
+//            System.out.println("Node[" + node.getValue() + "]color is:" + node.getColor());
+            System.out.println(
+                    "("+(node.getParent().getKey().compareTo(labelNil) != ZERO ? node.getParent().getKey() : labelNil)
+                            + ", "+node.getKey()
+                            + ", " + node.getColor()
+                            + ", " + (node.getLeftChild().getKey().compareTo(labelNil) != ZERO ? node.getLeftChild().getKey() : labelNil)
+                            + ", " + (node.getRightChild().getKey().compareTo(labelNil) != ZERO ? node.getRightChild().getKey() : labelNil)
+                            + ")");
+            rbCheck(node.getLeftChild());
+            rbCheck(node.getRightChild());
+        }
+    }
+
+
+    public RBElement getRoot() {
+        return root;
+    }
 }
