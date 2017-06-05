@@ -66,6 +66,10 @@ public class RBElement {
         this.color = color;
     }
 
+    public boolean isBlack(){
+        return this.getColor() == Color.preto;
+    }
+
 }
 
 enum Color {

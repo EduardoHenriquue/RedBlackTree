@@ -3,7 +3,7 @@
  */
 public class RBTree {
 
-    public static String labelNil = "Nil";
+    public static String labelNil = "NIL";
     private int ZERO = 0;
     public static RBElement NIL = new RBElement(null, null, null, labelNil, Color.preto);
 
@@ -217,7 +217,7 @@ public class RBTree {
     }
 
 
-    private RBElement rbSearch(String key) {
+    public RBElement rbSearch(String key) {
         RBElement temp = root;
         while (temp != NIL) {
             if (key.compareTo(temp.getKey()) == ZERO) {
@@ -285,12 +285,27 @@ public class RBTree {
                     "("+(node.getParent().getKey().compareTo(labelNil) != ZERO ? node.getParent().getKey() : labelNil)
                             + ", "+node.getKey()
                             + ", " + node.getColor()
+                            + ", " + getBlackHeight(node)
                             + ", " + (node.getLeftChild().getKey().compareTo(labelNil) != ZERO ? node.getLeftChild().getKey() : labelNil)
                             + ", " + (node.getRightChild().getKey().compareTo(labelNil) != ZERO ? node.getRightChild().getKey() : labelNil)
                             + ")");
             rbCheck(node.getLeftChild());
             rbCheck(node.getRightChild());
         }
+    }
+
+    public int getBlackHeight(RBElement node){
+        if(node == NIL){
+            return 0;
+        } else {
+            int leftBH = getBlackHeight(node.getLeftChild()) + ((node.getLeftChild().isBlack()) ? 1 : 0);
+            int rightBH = getBlackHeight(node.getRightChild()) + ((node.getRightChild().isBlack()) ? 1 : 0);
+            if(leftBH == rightBH){
+                return leftBH;
+            }
+        }
+        return 0;
+
     }
 
 
